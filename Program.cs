@@ -8,9 +8,15 @@ namespace install_filesearch
     class Program
     {
         private const string FILE_NAME = "FileSearch.ps1";
-        private static bool CyanOrPink = true; // true = cyan - false = pink
+        // true = cyan - false = pink
+        private static bool CyanOrPink = true; 
+        
         static void Main(string[] args)
         {
+            FlipColorAndWrite($"{DateTime.Now} - This will install FileSearch. Press 'Enter to continue, or exit this to abort.'");
+
+            Console.ReadLine();
+
             FlipColorAndWrite($"{DateTime.Now} - Installing FileSearch on PATH for user {Environment.UserName}...");
 
             var localAppDataDirectory = Environment.GetEnvironmentVariable("LocalAppData");
@@ -21,6 +27,7 @@ namespace install_filesearch
 
             var regexAddPath = Regex.Escape(fileSearchInstallDirectory);
 
+            // Prevent FileSearch from being added to path again if already installed.
             var environmentVariables = Environment
                 .GetEnvironmentVariable("PATH", EnvironmentVariableTarget.User)
                 .Split(';')
@@ -38,7 +45,7 @@ namespace install_filesearch
 
             var fileSearchDir = Directory.CreateDirectory(fileSearchInstallDirectory);
 
-            var fileSearchDestination = new FileInfo($"{fileSearchDir.FullName}\\{FILE_NAME}"); 
+            var fileSearchDestination = new FileInfo($"{fileSearchDir.FullName}\\{FILE_NAME}");
 
             if (fileSearchDestination.Exists)
             {
@@ -56,7 +63,23 @@ namespace install_filesearch
 
             FlipColorAndWrite($"{DateTime.Now} - Copying file...");
 
-            File.Copy(fileSearchFile, fileSearchDestination.FullName);
+            try
+            {
+                // PowerShell throws a cautionary message for scripts download from the 
+                // internet (rightfully so) but we will create a brand new file that contains
+                // the contents of the original but is missing the flag that says it was 
+                // downloaded ¬‿¬ 
+                using (var streamReader = new StreamReader(fileSearchFile))
+                using (var streamWriter = new StreamWriter(fileSearchDestination.FullName))
+                {
+                    string contents = streamReader.ReadToEnd();
+                    streamWriter.Write(contents);
+                }
+            } catch (Exception ex)
+            {
+                FlipColorAndWrite("Please download repository and try again");
+                FlipColorAndWrite(ex.Message);
+            }
 
             FlipColorAndWrite($"{DateTime.Now} - File copied...");
 
@@ -76,8 +99,10 @@ namespace install_filesearch
         static void FlipColorAndWrite(string message)
         {
             CyanOrPink = !CyanOrPink;
-            Console.ForegroundColor = CyanOrPink ? ConsoleColor.Cyan : ConsoleColor.Magenta;
-            Console.WriteLine(message);
+            Console.ForegroundColor = CyanOrPink 
+                ? ConsoleColor.Cyan 
+                : ConsoleColor.Magenta;
+            Console.WriteLine($"{message}\n");
         }
     }
 }

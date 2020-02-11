@@ -1,7 +1,6 @@
 C:\Users\vjohnson\source\repos\install-filesearch\bin\Debug\install-filesearch.exe.config
 C:\Users\vjohnson\source\repos\install-filesearch\bin\Debug\install-filesearch.exe
 C:\Users\vjohnson\source\repos\install-filesearch\bin\Debug\install-filesearch.pdb
-C:\Users\vjohnson\source\repos\install-filesearch\obj\Debug\install-filesearch.csprojAssemblyReference.cache
 C:\Users\vjohnson\source\repos\install-filesearch\obj\Debug\install-filesearch.exe
 C:\Users\vjohnson\source\repos\install-filesearch\obj\Debug\install-filesearch.pdb
 C:\Users\vjohnson\source\repos\install-filesearch\bin\Debug\FileSearch.ps1
@@ -9,3 +8,4 @@ C:\Users\vjohnson\Desktop\powershell-filesearch\install\FileSearch.ps1
 C:\Users\vjohnson\Desktop\powershell-filesearch\install\install-filesearch.exe.config
 C:\Users\vjohnson\Desktop\powershell-filesearch\install\install-filesearch.exe
 C:\Users\vjohnson\Desktop\powershell-filesearch\install\install-filesearch.pdb
+C:\Users\vjohnson\source\repos\install-filesearch\obj\Debug\install-filesearch.csprojAssemblyReference.cache
