@@ -13,9 +13,10 @@ namespace install_filesearch
         
         static void Main(string[] args)
         {
-            FlipColorAndWrite($"{DateTime.Now} - This will install FileSearch. Press 'Enter to continue, or exit this to abort.'");
+            FlipColorAndWrite($"{DateTime.Now} - This will install FileSearch. Press 'Enter' to continue, or exit this to abort...");
 
             Console.ReadLine();
+            Console.SetCursorPosition(0, Console.CursorTop - 1);
 
             FlipColorAndWrite($"{DateTime.Now} - Installing FileSearch on PATH for user {Environment.UserName}...");
 
