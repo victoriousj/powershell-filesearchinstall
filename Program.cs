@@ -1,6 +1,8 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Management.Automation;
+using System.Management.Automation.Runspaces;
 using System.Text.RegularExpressions;
 
 namespace install_filesearch
@@ -9,16 +11,16 @@ namespace install_filesearch
     {
         private const string FILE_NAME = "FileSearch.ps1";
         // true = cyan - false = pink
-        private static bool CyanOrPink = true; 
-        
+        private static bool CyanOrPink = true;
+
         static void Main(string[] args)
         {
-            FlipColorAndWrite($"{DateTime.Now} - This will install FileSearch. Press 'Enter' to continue, or exit this to abort...");
+            FlipColorAndWrite($"This will install FileSearch. Press 'Enter' to continue, or exit this to abort...");
 
             Console.ReadLine();
             Console.SetCursorPosition(0, Console.CursorTop - 1);
 
-            FlipColorAndWrite($"{DateTime.Now} - Installing FileSearch on PATH for user {Environment.UserName}...");
+            FlipColorAndWrite($"Installing FileSearch on PATH for user {Environment.UserName}...");
 
             var localAppDataDirectory = Environment.GetEnvironmentVariable("LocalAppData");
 
@@ -40,7 +42,7 @@ namespace install_filesearch
 
             var newEnvironmentVariable = string.Join(";", environmentVariables);
 
-            FlipColorAndWrite($"{DateTime.Now} - Creating directory in {fileSearchInstallDirectory}...");
+            FlipColorAndWrite($"Creating directory in {fileSearchInstallDirectory}...");
 
             var fileSearchFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, FILE_NAME);
 
@@ -50,23 +52,23 @@ namespace install_filesearch
 
             if (fileSearchDestination.Exists)
             {
-                FlipColorAndWrite($"{DateTime.Now} - Old version found... Overriding...");
+                FlipColorAndWrite($"Old version found... Overriding...");
                 try
                 {
                     File.Delete(fileSearchDestination.FullName);
                 }
                 catch (IOException ex)
                 {
-                    FlipColorAndWrite($"{DateTime.Now} - {ex.Message}");
+                    FlipColorAndWrite($"{ex.Message}");
                     return;
                 }
             }
 
-            FlipColorAndWrite($"{DateTime.Now} - Copying file...");
+            FlipColorAndWrite($"Copying file...");
 
             try
             {
-                // PowerShell throws a cautionary message for scripts download from the 
+                // PowerShell throws a cautionary message for scripts downloaded from the 
                 // internet (rightfully so) but we will create a brand new file that contains
                 // the contents of the original but is missing the flag that says it was 
                 // downloaded ¬‿¬ 
@@ -76,34 +78,71 @@ namespace install_filesearch
                     string contents = streamReader.ReadToEnd();
                     streamWriter.Write(contents);
                 }
-            } catch (Exception ex)
+            }
+            catch (Exception ex)
             {
                 FlipColorAndWrite("Please download repository and try again");
                 FlipColorAndWrite(ex.Message);
             }
 
-            FlipColorAndWrite($"{DateTime.Now} - File copied...");
+            FlipColorAndWrite($"File copied...");
 
-            FlipColorAndWrite($"{DateTime.Now} - Setting PATH variable to include FileSearch...");
+            FlipColorAndWrite($"Setting PATH variable to include FileSearch...");
 
             Environment.SetEnvironmentVariable("Path", newEnvironmentVariable, EnvironmentVariableTarget.User);
 
-            FlipColorAndWrite($"{DateTime.Now} - PATH variable set...");
+            FlipColorAndWrite($"PATH variable set...");
 
-            FlipColorAndWrite($"{DateTime.Now} - Complete...");
+            var changeExecutionPolicy = Confirm("Do you want to change your Execution Policy to run scripts? (may be required to use this) [y/n]");
+            if (changeExecutionPolicy)
+            {
+                FlipColorAndWrite("Changing Execution Policy to run scripts...");
+                using (Runspace myRunSpace = RunspaceFactory.CreateRunspace())
+                {
+                    myRunSpace.Open();
+                    // This is a major security concern. If you don't know the implications
+                    // of this, don't say yes.
+                    using (PowerShell powerShell = PowerShell.Create())
+                    {
+                        powerShell.Runspace = myRunSpace;
+                        powerShell.AddCommand("Set-ExecutionPolicy").AddArgument("Unrestricted").AddParameter("Scope", "CurrentUser");
+                        powerShell.Invoke();
+                    }
+                }
+            }
+            else
+            {
+                FlipColorAndWrite("Execution Policy not altered. You may need to do further configuration to run this...");
+            }
 
-            FlipColorAndWrite($"{DateTime.Now} - Open PowerShell to start using...");
+            FlipColorAndWrite($"Complete...");
+
+            FlipColorAndWrite($"Open PowerShell to start using...");
 
             Console.ReadLine();
+        }
+
+        static bool Confirm(string title)
+        {
+            ConsoleKey response;
+            do
+            {
+                FlipColorAndWrite($"{ title }");
+                Console.SetCursorPosition(0, Console.CursorTop - 2);
+                response = Console.ReadKey(true).Key;
+            } while (response != ConsoleKey.Y && response != ConsoleKey.N);
+
+            Console.SetCursorPosition(0, Console.CursorTop + 2);
+            return (response == ConsoleKey.Y);
         }
 
         static void FlipColorAndWrite(string message)
         {
             CyanOrPink = !CyanOrPink;
-            Console.ForegroundColor = CyanOrPink 
-                ? ConsoleColor.Cyan 
+            Console.ForegroundColor = CyanOrPink
+                ? ConsoleColor.Cyan
                 : ConsoleColor.Magenta;
-            Console.WriteLine($"{message}\n");
+            Console.WriteLine($"{DateTime.Now} - {message}\n");
         }
     }
 }
