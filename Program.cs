@@ -118,11 +118,9 @@ namespace install_filesearch
 
             FlipColorAndWrite($"Complete...");
 
-            FlipColorAndWrite($"Opening PowerShell to start using...");
+            FlipColorAndWrite($"Open PowerShell to start using...");
 
             Console.ReadLine();
-
-            Process process = Process.Start(new ProcessStartInfo("powershell"));
         }
 
         static bool Confirm(string title)
