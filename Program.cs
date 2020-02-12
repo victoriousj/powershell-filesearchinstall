@@ -1,17 +1,18 @@
 ﻿using System;
+using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Management.Automation;
-using System.Management.Automation.Runspaces;
 using System.Text.RegularExpressions;
 
 namespace install_filesearch
 {
     class Program
     {
-        private const string FILE_NAME = "FileSearch.ps1";
+        const string FILE_NAME = "FileSearch.ps1";
         // true = cyan - false = pink
-        private static bool CyanOrPink = true;
+        static bool CyanOrPink;
 
         static void Main(string[] args)
         {
@@ -93,33 +94,35 @@ namespace install_filesearch
 
             FlipColorAndWrite($"PATH variable set...");
 
-            var changeExecutionPolicy = Confirm("Do you want to change your Execution Policy to run scripts? (may be required to use this) [y/n]");
-            if (changeExecutionPolicy)
+            string executionPolicy = GetExecutionPolicy();
+            if (!executionPolicy.Equals("Unrestricted"))
             {
-                FlipColorAndWrite("Changing Execution Policy to run scripts...");
-                using (Runspace myRunSpace = RunspaceFactory.CreateRunspace())
+                // This is a major security concern. If you don't know the implications of this, don't say yes.
+                var changeExecutionPolicy = Confirm("Do you want to change your Execution Policy to run scripts? (may be required to use this) [y/n]");
+                if (changeExecutionPolicy)
                 {
-                    myRunSpace.Open();
-                    // This is a major security concern. If you don't know the implications
-                    // of this, don't say yes.
+                    FlipColorAndWrite("Changing Execution Policy to run scripts...");
                     using (PowerShell powerShell = PowerShell.Create())
                     {
-                        powerShell.Runspace = myRunSpace;
-                        powerShell.AddCommand("Set-ExecutionPolicy").AddArgument("Unrestricted").AddParameter("Scope", "CurrentUser");
-                        powerShell.Invoke();
+                        powerShell.AddCommand("Set-ExecutionPolicy")
+                            .AddArgument("Unrestricted")
+                            .AddParameter("Scope", "CurrentUser")
+                            .Invoke();
                     }
                 }
-            }
-            else
-            {
-                FlipColorAndWrite("Execution Policy not altered. You may need to do further configuration to run this...");
+                else
+                {
+                    FlipColorAndWrite("Execution Policy not altered. You may need to do further configuration to run this...");
+                }
             }
 
             FlipColorAndWrite($"Complete...");
 
-            FlipColorAndWrite($"Open PowerShell to start using...");
+            FlipColorAndWrite($"Opening PowerShell to start using...");
 
             Console.ReadLine();
+
+            Process process = Process.Start(new ProcessStartInfo("powershell"));
         }
 
         static bool Confirm(string title)
@@ -143,6 +146,19 @@ namespace install_filesearch
                 ? ConsoleColor.Cyan
                 : ConsoleColor.Magenta;
             Console.WriteLine($"{DateTime.Now} - {message}\n");
+        }
+
+        static string GetExecutionPolicy()
+        {
+            using (var powerShell = PowerShell.Create())
+            {
+                Collection<PSObject> obj = powerShell
+                    .AddCommand("Get-ExecutionPolicy")
+                    .AddParameter("Scope", "CurrentUser")
+                    .Invoke();
+
+                return $"{obj.FirstOrDefault()}";
+            }
         }
     }
 }

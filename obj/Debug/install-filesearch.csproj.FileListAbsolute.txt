@@ -9,3 +9,4 @@ C:\Users\vjohnson\Desktop\powershell-filesearch\install\install-filesearch.exe.c
 C:\Users\vjohnson\Desktop\powershell-filesearch\install\install-filesearch.exe
 C:\Users\vjohnson\Desktop\powershell-filesearch\install\install-filesearch.pdb
 C:\Users\vjohnson\source\repos\install-filesearch\obj\Debug\install-filesearch.csproj.CopyComplete
+C:\Users\vjohnson\source\repos\install-filesearch\obj\Debug\install-filesearch.csprojAssemblyReference.cache
